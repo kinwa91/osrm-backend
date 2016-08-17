@@ -6,6 +6,7 @@
 #include "engine/internal_route_result.hpp"
 #include "engine/search_engine_data.hpp"
 #include "util/coordinate_calculation.hpp"
+#include "util/guidance/turn_bearing.hpp"
 #include "util/typedefs.hpp"
 
 #include <boost/assert.hpp>
@@ -281,7 +282,9 @@ template <class DataFacadeT, class Derived> class BasicRoutingInterface
                                  {{0, INVALID_LANEID}, INVALID_LANE_DESCRIPTIONID},
                                  travel_mode,
                                  INVALID_ENTRY_CLASSID,
-                                 datasource_vector[i]});
+                                 datasource_vector[i],
+                                 util::guidance::TurnBearing(0),
+                                 util::guidance::TurnBearing(0)});
                 }
                 BOOST_ASSERT(unpacked_path.size() > 0);
                 if (facade.hasLaneData(edge_data.id))
@@ -290,6 +293,8 @@ template <class DataFacadeT, class Derived> class BasicRoutingInterface
                 unpacked_path.back().entry_classid = facade.GetEntryClassID(edge_data.id);
                 unpacked_path.back().turn_instruction = turn_instruction;
                 unpacked_path.back().duration_until_turn += (edge_data.distance - total_weight);
+                unpacked_path.back().pre_turn_bearing = facade->PreTurnBearing(edge_data.id);
+                unpacked_path.back().post_turn_bearing = facade->PostTurnBearing(edge_data.id);
             });
 
         std::size_t start_index = 0, end_index = 0;
@@ -356,7 +361,9 @@ template <class DataFacadeT, class Derived> class BasicRoutingInterface
                 target_traversed_in_reverse ? phantom_node_pair.target_phantom.backward_travel_mode
                                             : phantom_node_pair.target_phantom.forward_travel_mode,
                 INVALID_ENTRY_CLASSID,
-                datasource_vector[i]});
+                datasource_vector[i],
+                util::guidance::TurnBearing(0),
+                util::guidance::TurnBearing(0)});
         }
 
         if (unpacked_path.size() > 0)

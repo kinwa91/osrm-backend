@@ -26,6 +26,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/range/iterator_range.hpp>
 #include <boost/tokenizer.hpp>
 
 namespace osrm
@@ -308,27 +309,20 @@ lanesToTheLeft(const util::guidance::LaneTuple lanes,
     }
 }
 
-inline std::vector<TurnLaneType::Mask>
-lanesToTheRight(const util::guidance::LaneTuple lanes,
-                extractor::guidance::TurnLaneDescription lane_description)
+template< class Iterator >
+inline boost::iterator_range< Iterator >
+lanesToTheRight(const util::guidance::LaneTuple &lanes,
+                const extractor::guidance::TurnLaneDescription &lane_description)
 {
-    std::vector<TurnLaneType::Mask> lanes_to_the_right;
     if (lanes.first_lane_from_the_right > 0)
     {
+        // return a range with the first lane right of the turn lanes, and the lane furthest to the right
         const auto first_right_of_turn_lanes =
-            lanes.first_lane_from_the_right + (lanes.lanes_in_turn - 1);
-        for (auto laneIt = lane_description.rbegin() + first_right_of_turn_lanes,
-                  end = lane_description.rend();
-             laneIt != end;
-             ++laneIt)
-        {
-            lanes_to_the_right.push_back(*laneIt);
-        }
-        return lanes_to_the_right;
-    }
-    else
-    {
-        return lanes_to_the_right;
+            lane_description.begin() + (lanes.first_lane_from_the_right + 1);
+        const auto last_lane_to_the_right = lane_description.end();
+        return boost::make_iterator_range(first_right_of_turn_lanes, last_lane_to_the_right);
+    } else {
+        return boost::make_iterator_range(lane_description.end(),lane_description.end());
     }
 }
 

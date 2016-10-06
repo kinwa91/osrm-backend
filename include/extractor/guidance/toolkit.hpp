@@ -286,43 +286,45 @@ inline std::string applyAccessTokens(std::string lane_string, const std::string 
     return result_string;
 }
 
-inline std::vector<TurnLaneType::Mask>
+template <class Iterator>
+inline boost::iterator_range<Iterator>
 lanesToTheLeft(const util::guidance::LaneTuple lanes,
                extractor::guidance::TurnLaneDescription lane_description)
 {
-    std::vector<TurnLaneType::Mask> lanes_to_the_left;
-    const auto first_left_of_turn_lanes = lanes.first_lane_from_the_right + lanes.lanes_in_turn;
-    if (first_left_of_turn_lanes < boost::numeric_cast<int>(lane_description.size()))
+    const auto furthest_left_turn_lane =
+        lane_description.size() - (lanes.first_lane_from_the_right + lanes.lanes_in_turn);
+    // check that lanes even exist left of the turn lanes
+    if (lane_description.begin() + furthest_left_turn_lane != lane_description.begin())
     {
-        for (auto laneIt = lane_description.rbegin() + first_left_of_turn_lanes,
-                  end = lane_description.rend();
-             laneIt != end;
-             ++laneIt)
-        {
-            lanes_to_the_left.push_back(*laneIt);
-        }
-        return lanes_to_the_left;
+        // return a range from the furthest left lane, to the first lane left of turn lanes
+        const auto first_left_of_turn_lanes =
+            lane_description.begin() + (furthest_left_turn_lane - 1);
+        const auto first_lane_to_the_left = lane_description.begin();
+        return boost::make_iterator_range(first_lane_to_the_left, first_left_of_turn_lanes);
     }
     else
     {
-        return lanes_to_the_left;
+        return boost::make_iterator_range(lane_description.end(), lane_description.end());
     }
 }
 
-template< class Iterator >
-inline boost::iterator_range< Iterator >
+template <class Iterator>
+inline boost::iterator_range<Iterator>
 lanesToTheRight(const util::guidance::LaneTuple &lanes,
                 const extractor::guidance::TurnLaneDescription &lane_description)
 {
+    // check that lanes even exist right of the turn lanes
     if (lanes.first_lane_from_the_right > 0)
     {
-        // return a range with the first lane right of the turn lanes, and the lane furthest to the right
+        // return a range from the first lane right of turn lanes, and furthest to the right
         const auto first_right_of_turn_lanes =
             lane_description.begin() + (lane_description.size() - lanes.first_lane_from_the_right);
         const auto last_lane_to_the_right = lane_description.end() - 1;
         return boost::make_iterator_range(first_right_of_turn_lanes, last_lane_to_the_right);
-    } else {
-        return boost::make_iterator_range(lane_description.end(),lane_description.end());
+    }
+    else
+    {
+        return boost::make_iterator_range(lane_description.end(), lane_description.end());
     }
 }
 

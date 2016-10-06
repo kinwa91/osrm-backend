@@ -12,9 +12,11 @@
 #include "extractor/compressed_edge_container.hpp"
 #include "extractor/query_node.hpp"
 
+#include "extractor/guidance/constants.hpp"
 #include "extractor/guidance/discrete_angle.hpp"
 #include "extractor/guidance/intersection.hpp"
 #include "extractor/guidance/turn_instruction.hpp"
+#include "extractor/guidance/road_classification.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -292,6 +294,20 @@ inline std::string applyAccessTokens(std::string lane_string, const std::string 
         }
     }
     return result_string;
+}
+
+inline bool obviousByRoadClass(const RoadClassification in_classification,
+                        const RoadClassification obvious_candidate,
+                        const RoadClassification compare_candidate)
+{
+    const bool has_high_priority = PRIORITY_DISTINCTION_FACTOR * obvious_candidate.GetPriority() <
+                                   compare_candidate.GetPriority();
+
+    const bool continues_on_same_class = in_classification == obvious_candidate;
+    return (has_high_priority && continues_on_same_class) ||
+           (!obvious_candidate.IsLowPriorityRoadClass() &&
+            !in_classification.IsLowPriorityRoadClass() &&
+            compare_candidate.IsLowPriorityRoadClass());
 }
 
 } // namespace guidance

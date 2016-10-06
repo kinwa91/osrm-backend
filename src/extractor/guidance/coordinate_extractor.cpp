@@ -1,5 +1,3 @@
-#include "util/debug.hpp"
-
 #include "extractor/guidance/constants.hpp"
 #include "extractor/guidance/coordinate_extractor.hpp"
 #include "extractor/guidance/toolkit.hpp"
@@ -289,42 +287,6 @@ CoordinateExtractor::GetCoordinateAlongRoad(const NodeID intersection_node,
         return turn_angles;
     }();
 
-#if 0
-    const auto printStatus = [&]() {
-        const util::Coordinate destination_coordinate =
-            node_coordinates[traversed_in_reverse ? intersection_node : to_node];
-        std::cout << "Coordinates: Full: " << count << "  Reduced: " << coordinates.size()
-                  << " Lanes: " << (int)intersection_lanes << " "
-                  << " Turn: " << std::setprecision(12) << toFloating(turn_coordinate.lat) << " "
-                  << toFloating(turn_coordinate.lon) << " - " << toFloating(coordinates.back().lat)
-                  << " " << toFloating(coordinates.back().lon)
-                  << " Regression: " << toFloating(destination_coordinate.lat) << " "
-                  << toFloating(destination_coordinate.lon)
-                  << " Regression: " << toFloating(regression_line.first.lat) << " "
-                  << toFloating(regression_line.first.lon) << " - "
-                  << toFloating(regression_line.second.lat) << " "
-                  << toFloating(regression_line.second.lon) << ":\n\t" << std::setprecision(5);
-        std::cout << "Stats: Turn Angles:";
-        for (auto angle : turn_angles)
-            std::cout << " " << (int)angle;
-        std::cout << " Distances:";
-        double distance = 0;
-        for (std::size_t i = 0; i < coordinates.size(); ++i)
-        {
-            distance += segment_distances[i];
-            std::cout << " " << distance;
-            auto coord_between =
-                util::coordinate_calculation::projectPointOnSegment(
-                    regression_line.first, regression_line.second, coordinates[i])
-                    .second;
-            std::cout << " (" << util::coordinate_calculation::haversineDistance(coord_between,
-                                                                                 coordinates[i])
-                      << ")";
-        }
-        std::cout << std::endl;
-    };
-#endif
-
     /*
      * If the very first coordinate is within lane offsets and the rest offers a near straight line,
      * we use an offset coordinate.
@@ -483,67 +445,6 @@ CoordinateExtractor::GetCoordinateAlongRoad(const NodeID intersection_node,
         }
     }
 
-#if 0
-    // offsets can occur in curved turns as well, though here we have to offset at a coordinate down
-    // the road, index will be equal to coordinates.size() if the turn is not passing the test
-    const std::size_t curved_offset_index = [&]() {
-        const auto maximal_lane_offset =
-            (std::max(intersection_lanes, (std::uint8_t)2)) * 0.5 * ASSUMED_LANE_WIDTH;
-
-        // distance has to be long enough to even check
-        if (total_distance < std::max(3 * maximal_lane_offset, LOOKAHEAD_DISTANCE_WITHOUT_LANES))
-            return coordinates.size();
-
-        const auto offset_index = [segment_distances,
-                                   intersection_lanes,
-                                   maximal_lane_offset,
-                                   straight_distance,
-                                   coordinates]() {
-            double total_segment_length = 0;
-            // we allow crossing an additional lane in distance for the turn to be modelled
-            const auto curved_offset_distance = 1.5 * (maximal_lane_offset + ASSUMED_LANE_WIDTH);
-
-            // follow along short segments (shorter than lane width). If the very first longer
-            // segment is long enough and the total distance is not to far, we are looking at a
-            // curved offset
-            for (std::size_t i = 0; i + 1 < segment_distances.size(); ++i)
-            {
-                // are we still within turning range
-                const auto new_segment_length = total_segment_length + segment_distances[i + 1];
-                if (new_segment_length < curved_offset_distance)
-                {
-                    total_segment_length = new_segment_length;
-                    // not all going into the same direction
-                }
-                else
-                    return i;
-            }
-            return coordinates.size();
-        }();
-
-        // at least two coordinates left and passed at least two coordinates
-        if (offset_index <= 1 || offset_index + 1 >= coordinates.size())
-            return coordinates.size();
-
-        const auto deviation_from_straight = GetMaxDeviation(coordinates.begin() + offset_index,
-                                                             coordinates.end(),
-                                                             *(coordinates.begin() + offset_index),
-                                                             coordinates.back());
-        // remaining part of road is straight
-        if (deviation_from_straight < 0.25 * ASSUMED_LANE_WIDTH)
-            return offset_index;
-        else
-            return coordinates.size();
-    }();
-
-    if (curved_offset_index + 1 < coordinates.size())
-    {
-        // TODO get correct index to consider in case of straight_distance
-        return GetCorrectedCoordinate(turn_coordinate,
-                                      coordinates[curved_offset_index],
-                                      coordinates[curved_offset_index + 1]);
-    }
-#endif
     // We use the locations on the regression line to offset the regression line onto the
     // intersection.
     return TrimCoordinatesToLength(coordinates, LOOKAHEAD_DISTANCE_WITHOUT_LANES).back();

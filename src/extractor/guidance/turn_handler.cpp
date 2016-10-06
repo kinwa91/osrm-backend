@@ -127,6 +127,10 @@ bool TurnHandler::isObviousOfTwo(const EdgeID via_edge,
 Intersection TurnHandler::handleThreeWayTurn(const EdgeID via_edge, Intersection intersection) const
 {
     const auto obvious_index = findObviousTurn(via_edge, intersection);
+    std::cout << "[intersection]\n";
+    for( auto road : intersection )
+        std::cout << "\t" << toString(road) << std::endl;
+    std::cout << "Obvious: " << obvious_index << std::endl;
     BOOST_ASSERT(intersection[0].turn.angle < 0.001);
     /* Two nearly straight turns -> FORK
                OOOOOOO
@@ -510,6 +514,7 @@ std::pair<std::size_t, std::size_t> TurnHandler::findFork(const EdgeID via_edge,
             return false;
         }();
 
+        // A fork can only happen between edges of similar types where none of the ones is obvious
         const bool has_compatible_classes = [&]() {
             const bool ramp_class = node_based_graph.GetEdgeData(intersection[right].turn.eid)
                                         .road_classification.IsLinkClass();
@@ -518,6 +523,27 @@ std::pair<std::size_t, std::size_t> TurnHandler::findFork(const EdgeID via_edge,
                     node_based_graph.GetEdgeData(intersection[index].turn.eid)
                         .road_classification.IsLinkClass())
                     return false;
+
+            const auto in_classification =
+                node_based_graph.GetEdgeData(intersection[0].turn.eid).road_classification;
+            for (std::size_t base_index = right; base_index <= left; ++base_index)
+            {
+                const auto base_classification =
+                    node_based_graph.GetEdgeData(intersection[base_index].turn.eid)
+                        .road_classification;
+                for (std::size_t compare_index = right; compare_index <= left; ++compare_index)
+                {
+                    if (base_index == compare_index)
+                        continue;
+
+                    const auto compare_classification =
+                        node_based_graph.GetEdgeData(intersection[compare_index].turn.eid)
+                            .road_classification;
+                    if (obviousByRoadClass(
+                            in_classification, base_classification, compare_classification))
+                        return false;
+                }
+            }
             return true;
         }();
 

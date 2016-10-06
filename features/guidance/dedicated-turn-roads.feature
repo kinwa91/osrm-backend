@@ -223,11 +223,11 @@ Feature: Slipways and Dedicated Turn Lanes
             | jcghf  | primary        | Brauerstrasse | yes    |
 
         When I route I should get
-            | waypoints | route                                    | turns                           |
-            | a,i       | Ebertstrasse,Ebertstrasse                | depart,arrive                   |
-            | a,l       | Ebertstrasse,Ebertstrasse                | depart,arrive                   |
-            | a,f       | Ebertstrasse,Brauerstrasse,Brauerstrasse | depart,turn right,arrive        |
-            | a,1       | Ebertstrasse,,                           | depart,turn slight right,arrive |
+            | waypoints | route                                    | turns                    |
+            | a,i       | Ebertstrasse,Ebertstrasse                | depart,arrive            |
+            | a,l       | Ebertstrasse,Ebertstrasse                | depart,arrive            |
+            | a,f       | Ebertstrasse,Brauerstrasse,Brauerstrasse | depart,turn right,arrive |
+            | a,1       | Ebertstrasse,,                           | depart,turn right,arrive |
 
     #2839
     Scenario: Self-Loop

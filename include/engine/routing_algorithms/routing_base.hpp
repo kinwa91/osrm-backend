@@ -293,8 +293,8 @@ template <class DataFacadeT, class Derived> class BasicRoutingInterface
                 unpacked_path.back().entry_classid = facade.GetEntryClassID(edge_data.id);
                 unpacked_path.back().turn_instruction = turn_instruction;
                 unpacked_path.back().duration_until_turn += (edge_data.distance - total_weight);
-                unpacked_path.back().pre_turn_bearing = facade->PreTurnBearing(edge_data.id);
-                unpacked_path.back().post_turn_bearing = facade->PostTurnBearing(edge_data.id);
+                unpacked_path.back().pre_turn_bearing = facade.PreTurnBearing(edge_data.id);
+                unpacked_path.back().post_turn_bearing = facade.PostTurnBearing(edge_data.id);
             });
 
         std::size_t start_index = 0, end_index = 0;

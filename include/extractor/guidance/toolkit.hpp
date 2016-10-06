@@ -318,8 +318,8 @@ lanesToTheRight(const util::guidance::LaneTuple &lanes,
     {
         // return a range with the first lane right of the turn lanes, and the lane furthest to the right
         const auto first_right_of_turn_lanes =
-            lane_description.begin() + (lanes.first_lane_from_the_right + 1);
-        const auto last_lane_to_the_right = lane_description.end();
+            lane_description.begin() + (lane_description.size() - lanes.first_lane_from_the_right);
+        const auto last_lane_to_the_right = lane_description.end() - 1;
         return boost::make_iterator_range(first_right_of_turn_lanes, last_lane_to_the_right);
     } else {
         return boost::make_iterator_range(lane_description.end(),lane_description.end());

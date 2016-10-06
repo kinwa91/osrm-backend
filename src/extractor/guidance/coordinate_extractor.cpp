@@ -395,21 +395,22 @@ CoordinateExtractor::GetCoordinateAlongRoad(const NodeID intersection_node,
     const bool all_angles_are_similar = [&turn_angles]() {
         for (std::size_t i = 1; i < turn_angles.size(); ++i)
         {
-            if (guidance::angularDeviation(turn_angles[i - 1], turn_angles[i]) >
-                    guidance::FUZZY_ANGLE_DIFFERENCE ||
-                (turn_angles[i] > guidance::STRAIGHT_ANGLE ==
-                 turn_angles[i - 1] < guidance::STRAIGHT_ANGLE))
+            if (angularDeviation(turn_angles[i - 1], turn_angles[i]) > FUZZY_ANGLE_DIFFERENCE ||
+                (turn_angles[i] > STRAIGHT_ANGLE == turn_angles[i - 1] < STRAIGHT_ANGLE))
                 return false;
         }
         return true;
     }();
 
-    const bool all_lengths_are_similar = [total_distance, &segment_distances, &coordinates]() {
-        const auto mean = total_distance / (coordinates.size() - 1);
-        const auto max = *std::max_element(segment_distances.begin(), segment_distances.end());
-        const auto min = *std::min_element(segment_distances.begin(), segment_distances.end());
+    const bool takes_an_actual_turn = [&coordinates]() {
+        BOOST_ASSERT(coordinates.size() > 2);
+        const auto begin_bearing =
+            util::coordinate_calculation::bearing(coordinates[0], coordinates[1]);
+        const auto end_bearing = util::coordinate_calculation::bearing(
+            coordinates[coordinates.size() - 2], coordinates[coordinates.size() - 1]);
 
-        return (max / mean <= 1.25 && mean / min <= 1.25);
+        const auto total_angle = angularDeviation(begin_bearing, end_bearing);
+        return total_angle > NARROW_TURN_ANGLE;
     }();
 
     /*
@@ -441,7 +442,7 @@ CoordinateExtractor::GetCoordinateAlongRoad(const NodeID intersection_node,
      * angle would get stronger. Therefore we consider the very first coordinate as our best choice
      */
     if ((total_distance >= 0.5 * FAR_LOOKAHEAD_DISTANCE && has_many_coordinates &&
-         all_angles_are_similar && all_lengths_are_similar) ||
+         all_angles_are_similar && takes_an_actual_turn) ||
         turn_edge_data.roundabout)
     {
         /*

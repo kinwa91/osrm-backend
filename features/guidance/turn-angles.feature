@@ -1068,37 +1068,3 @@ Feature: Simple Turns
         When I route I should get
             | waypoints | route          | turns                        |
             | a,m       | gato,hain,hain | depart,turn left,arrive      |
-
-    Scenario: Curved Turn At Cross
-        Given the node map
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | h |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | d |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | e |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | f |   |   |
-            | h |   |   |   |   |   |   |   |   |   |   |   |   |   | g |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |
-            |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   | i |
-
-        And the ways
-            | nodes | lanes | name  | oneway |
-            | defg  | 2     | road  | yes    |
-            | idh   | 2     | cross | yes    |
-
-        When I route I should get
-            | waypoints | route           | turns                    |
-            | i,h       | cross,road,road | depart,turn left,arrive  |
